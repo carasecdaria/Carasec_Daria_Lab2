@@ -1,0 +1,53 @@
+@page
+@model Carasec_Daria_Lab2.Pages.BookPages.DetailsModel
+
+@{
+    ViewData["Title"] = "Book Details";
+}
+
+<h1>Book Details</h1>
+<h4>Book</h4>
+<hr />
+
+<dl class="row">
+    <dt class="col-sm-3">Book Title</dt>
+    <dd class="col-sm-9">@Model.Book.Title</dd>
+
+    <dt class="col-sm-3">Author</dt>
+    <dd class="col-sm-9">
+        @if (Model.Book.Author != null)
+        {
+            @($"{Model.Book.Author.FirstName} {Model.Book.Author.LastName}")
+        }
+        else
+        {
+            <span>No author assigned</span>
+        }
+    </dd>
+
+    <dt class="col-sm-3">Price</dt>
+    <dd class="col-sm-9">@Model.Book.Price</dd>
+
+    <dt class="col-sm-3">Publishing Date</dt>
+    <dd class="col-sm-9">
+        @Model.Book.PublishingDate.ToShortDateString()
+    </dd>
+
+    <dt class="col-sm-3">Publisher</dt>
+    <dd class="col-sm-9">
+        @Model.Book.Publisher?.PublisherName
+    </dd>
+</dl>
+
+<div class="mt-3">
+    <a asp-page="./Edit"
+       asp-route-id="@Model.Book.ID"
+       class="btn btn-warning">
+        Edit
+    </a>
+
+    <a asp-page="./Index"
+       class="btn btn-secondary">
+        Back to List
+    </a>
+</div>
