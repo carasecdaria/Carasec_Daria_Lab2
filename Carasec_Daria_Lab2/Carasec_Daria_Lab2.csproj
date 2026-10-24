@@ -18,6 +18,7 @@
   <ItemGroup>
     <Folder Include="Pages\Books\" />
     <Folder Include="Pages\Author\" />
+    <Folder Include="Pages\CategoryPages\" />
     <Folder Include="Pages\Publishers\" />
   </ItemGroup>
 

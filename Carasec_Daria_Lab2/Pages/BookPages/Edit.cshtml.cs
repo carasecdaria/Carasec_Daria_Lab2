@@ -1,98 +1,90 @@
-
-using Carasec_Daria_Lab2.Data;
-using Carasec_Daria_Lab2.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Carasec_Daria_Lab2.Models;
 
-namespace Carasec_Daria_Lab2.Pages.BookPages;
-
-public class EditModel : PageModel
+namespace Carasec_Daria_Lab2.Pages.BookPages
 {
-    private readonly Carasec_Daria_Lab2Context _context;
-
-    public EditModel(Carasec_Daria_Lab2Context context)
+    public class EditModel : BookCategoriesPageModel
     {
-        _context = context;
-    }
+        private readonly Carasec_Daria_Lab2.Data.Carasec_Daria_Lab2Context _context;
 
-    [BindProperty]
-    public Book Book { get; set; } = default!;
-
-    public async Task<IActionResult> OnGetAsync(int? id)
-    {
-        if (id == null)
+        public EditModel(Carasec_Daria_Lab2.Data.Carasec_Daria_Lab2Context context)
         {
-            return NotFound();
+            _context = context;
         }
 
-        var book = await _context.Book
-            .FirstOrDefaultAsync(b => b.ID == id);
+        [BindProperty]
+        public Book Book { get; set; } = default!;
 
-        if (book == null)
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
-            return NotFound();
-        }
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        Book = book;
+            Book = await _context.Book
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookCategories).ThenInclude(b => b.Category)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.ID == id);
 
-        await LoadDropdownsAsync();
+            if (Book == null)
+            {
+                return NotFound();
+            }
 
-        return Page();
-    }
-
-    public async Task<IActionResult> OnPostAsync()
-    {
-        if (!ModelState.IsValid)
-        {
-            await LoadDropdownsAsync();
+            PopulateAssignedCategoryData(_context, Book);
+            IncarcaListe();
             return Page();
         }
 
-        var existingBook = await _context.Book
-            .FindAsync(Book.ID);
-
-        if (existingBook == null)
+        public async Task<IActionResult> OnPostAsync(int? id, string[] selectedCategories)
         {
-            return NotFound();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var bookToUpdate = await _context.Book
+                .Include(i => i.Author)
+                .Include(i => i.Publisher)
+                .Include(i => i.BookCategories).ThenInclude(i => i.Category)
+                .FirstOrDefaultAsync(s => s.ID == id);
+
+            if (bookToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            if (await TryUpdateModelAsync<Book>(
+                bookToUpdate,
+                "Book",
+                i => i.Title, i => i.AuthorID,
+                i => i.Price, i => i.PublishingDate, i => i.PublisherID))
+            {
+                UpdateBookCategories(_context, selectedCategories, bookToUpdate);
+                await _context.SaveChangesAsync();
+                return RedirectToPage("./Index");
+            }
+
+            UpdateBookCategories(_context, selectedCategories, bookToUpdate);
+            PopulateAssignedCategoryData(_context, bookToUpdate);
+            IncarcaListe();
+            return Page();
         }
 
-        existingBook.Title = Book.Title;
-        existingBook.Price = Book.Price;
-        existingBook.PublishingDate = Book.PublishingDate;
-        existingBook.AuthorID = Book.AuthorID;
-        existingBook.PublisherID = Book.PublisherID;
-
-        await _context.SaveChangesAsync();
-
-        return RedirectToPage("./Index");
-    }
-
-    private async Task LoadDropdownsAsync()
-    {
-        var authors = await _context.Author
-            .OrderBy(a => a.LastName)
-            .ThenBy(a => a.FirstName)
-            .Select(a => new
+        private void IncarcaListe()
+        {
+            var authorList = _context.Author.Select(x => new
             {
-                a.ID,
-                FullName = a.FirstName + " " + a.LastName
-            })
-            .ToListAsync();
-
-        ViewData["AuthorID"] = new SelectList(
-            authors,
-            "ID",
-            "FullName",
-            Book?.AuthorID
-        );
-
-        ViewData["PublisherID"] = new SelectList(
-            await _context.Publisher.ToListAsync(),
-            "ID",
-            "PublisherName",
-            Book?.PublisherID
-        );
+                x.ID,
+                FullName = x.LastName + " " + x.FirstName
+            });
+            ViewData["AuthorID"] = new SelectList(authorList, "ID", "FullName");
+            ViewData["PublisherID"] = new SelectList(_context.Publisher, "ID", "PublisherName");
+        }
     }
 }

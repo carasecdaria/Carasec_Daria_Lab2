@@ -2,52 +2,48 @@
 @model Carasec_Daria_Lab2.Pages.BookPages.DetailsModel
 
 @{
-    ViewData["Title"] = "Book Details";
+    ViewData["Title"] = "Details";
 }
 
-<h1>Book Details</h1>
-<h4>Book</h4>
-<hr />
+<h1>Details</h1>
 
-<dl class="row">
-    <dt class="col-sm-3">Book Title</dt>
-    <dd class="col-sm-9">@Model.Book.Title</dd>
+<div>
+    <h4>Book</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Book Title</dt>
+        <dd class="col-sm-10">@Model.Book.Title</dd>
 
-    <dt class="col-sm-3">Author</dt>
-    <dd class="col-sm-9">
-        @if (Model.Book.Author != null)
-        {
-            @($"{Model.Book.Author.FirstName} {Model.Book.Author.LastName}")
-        }
-        else
-        {
-            <span>No author assigned</span>
-        }
-    </dd>
+        <dt class="col-sm-2">Author</dt>
+        <dd class="col-sm-10">@Model.Book.Author?.FirstName @Model.Book.Author?.LastName</dd>
 
-    <dt class="col-sm-3">Price</dt>
-    <dd class="col-sm-9">@Model.Book.Price</dd>
+        <dt class="col-sm-2">Price</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Book.Price)</dd>
 
-    <dt class="col-sm-3">Publishing Date</dt>
-    <dd class="col-sm-9">
-        @Model.Book.PublishingDate.ToShortDateString()
-    </dd>
+        <dt class="col-sm-2">Publishing Date</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Book.PublishingDate)</dd>
 
-    <dt class="col-sm-3">Publisher</dt>
-    <dd class="col-sm-9">
-        @Model.Book.Publisher?.PublisherName
-    </dd>
-</dl>
+        <dt class="col-sm-2">Publisher</dt>
+        <dd class="col-sm-10">@Model.Book.Publisher?.PublisherName</dd>
 
-<div class="mt-3">
-    <a asp-page="./Edit"
-       asp-route-id="@Model.Book.ID"
-       class="btn btn-warning">
-        Edit
-    </a>
-
-    <a asp-page="./Index"
-       class="btn btn-secondary">
-        Back to List
-    </a>
+        <dt class="col-sm-2">Categories</dt>
+        <dd class="col-sm-10">
+            @if (Model.Book.BookCategories != null && Model.Book.BookCategories.Any())
+            {
+                foreach (var bc in Model.Book.BookCategories)
+                {
+                    @bc.Category.CategoryName
+                    <br />
+                }
+            }
+            else
+            {
+                <span>Nicio categorie</span>
+            }
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.Book.ID">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
 </div>

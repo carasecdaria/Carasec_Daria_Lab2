@@ -7,6 +7,7 @@ namespace Carasec_Daria_Lab2.Data
 {
     public class Carasec_Daria_Lab2Context : DbContext
     {
+        public DbSet<Carasec_Daria_Lab2.Models.Category> Category { get; set; } = default!;
         public Carasec_Daria_Lab2Context(
             DbContextOptions<Carasec_Daria_Lab2Context> options
         ) : base(options)

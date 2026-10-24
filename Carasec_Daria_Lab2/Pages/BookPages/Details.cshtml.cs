@@ -1,42 +1,43 @@
-
-using Carasec_Daria_Lab2.Data;
-using Carasec_Daria_Lab2.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Carasec_Daria_Lab2.Models;
 
-namespace Carasec_Daria_Lab2.Pages.BookPages;
-
-public class DetailsModel : PageModel
+namespace Carasec_Daria_Lab2.Pages.BookPages
 {
-    private readonly Carasec_Daria_Lab2Context _context;
-
-    public DetailsModel(Carasec_Daria_Lab2Context context)
+    public class DetailsModel : PageModel
     {
-        _context = context;
-    }
+        private readonly Carasec_Daria_Lab2.Data.Carasec_Daria_Lab2Context _context;
 
-    public Book Book { get; set; } = default!;
-
-    public async Task<IActionResult> OnGetAsync(int? id)
-    {
-        if (id == null)
+        public DetailsModel(Carasec_Daria_Lab2.Data.Carasec_Daria_Lab2Context context)
         {
-            return NotFound();
+            _context = context;
         }
 
-        var book = await _context.Book
-            .Include(b => b.Author)
-            .Include(b => b.Publisher)
-            .FirstOrDefaultAsync(b => b.ID == id);
+        public Book Book { get; set; } = default!;
 
-        if (book == null)
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
-            return NotFound();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var book = await _context.Book
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookCategories)
+                    .ThenInclude(bc => bc.Category)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.ID == id);
+
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            Book = book;
+            return Page();
         }
-
-        Book = book;
-
-        return Page();
     }
 }

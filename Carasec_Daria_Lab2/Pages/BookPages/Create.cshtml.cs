@@ -1,69 +1,56 @@
-
-using Carasec_Daria_Lab2.Data;
-using Carasec_Daria_Lab2.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using Carasec_Daria_Lab2.Models;
 
-namespace Carasec_Daria_Lab2.Pages.BookPages;
-
-public class CreateModel : PageModel
+namespace Carasec_Daria_Lab2.Pages.BookPages
 {
-    private readonly Carasec_Daria_Lab2Context _context;
-
-    public CreateModel(Carasec_Daria_Lab2Context context)
+    public class CreateModel : BookCategoriesPageModel
     {
-        _context = context;
-    }
+        private readonly Carasec_Daria_Lab2.Data.Carasec_Daria_Lab2Context _context;
 
-    [BindProperty]
-    public Book Book { get; set; } = default!;
-
-    public async Task<IActionResult> OnGetAsync()
-    {
-        await LoadDropdownsAsync();
-        return Page();
-    }
-
-    public async Task<IActionResult> OnPostAsync()
-    {
-        if (!ModelState.IsValid)
+        public CreateModel(Carasec_Daria_Lab2.Data.Carasec_Daria_Lab2Context context)
         {
-            await LoadDropdownsAsync();
+            _context = context;
+        }
+
+        public IActionResult OnGet()
+        {
+            var authorList = _context.Author.Select(x => new
+            {
+                x.ID,
+                FullName = x.LastName + " " + x.FirstName
+            });
+            ViewData["AuthorID"] = new SelectList(authorList, "ID", "FullName");
+            ViewData["PublisherID"] = new SelectList(_context.Publisher, "ID", "PublisherName");
+
+            var book = new Book();
+            book.BookCategories = new List<BookCategory>();
+            PopulateAssignedCategoryData(_context, book);
             return Page();
         }
 
-        _context.Book.Add(Book);
-        await _context.SaveChangesAsync();
+        [BindProperty]
+        public Book Book { get; set; } = default!;
 
-        return RedirectToPage("./Index");
-    }
-
-    private async Task LoadDropdownsAsync()
-    {
-        var authors = await _context.Author
-            .OrderBy(a => a.LastName)
-            .ThenBy(a => a.FirstName)
-            .Select(a => new
+        public async Task<IActionResult> OnPostAsync(string[] selectedCategories)
+        {
+            var newBook = new Book();
+            if (selectedCategories != null)
             {
-                a.ID,
-                FullName = a.FirstName + " " + a.LastName
-            })
-            .ToListAsync();
-
-        ViewData["AuthorID"] = new SelectList(
-            authors,
-            "ID",
-            "FullName",
-            Book?.AuthorID
-        );
-
-        ViewData["PublisherID"] = new SelectList(
-            await _context.Publisher.ToListAsync(),
-            "ID",
-            "PublisherName",
-            Book?.PublisherID
-        );
+                newBook.BookCategories = new List<BookCategory>();
+                foreach (var cat in selectedCategories)
+                {
+                    var catToAdd = new BookCategory
+                    {
+                        CategoryID = int.Parse(cat)
+                    };
+                    newBook.BookCategories.Add(catToAdd);
+                }
+            }
+            Book.BookCategories = newBook.BookCategories;
+            _context.Book.Add(Book);
+            await _context.SaveChangesAsync();
+            return RedirectToPage("./Index");
+        }
     }
 }
