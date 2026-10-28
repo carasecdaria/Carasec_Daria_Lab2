@@ -11,6 +11,17 @@
     <a asp-page="./Create">Create New</a>
 </p>
 
+<form asp-page="./Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            Find by Book Title / Author Name:
+            <input type="text" name="SearchString" value="@Model.CurrentFilter" />
+            <input type="submit" value="Search" class="btn btn-primary" /> |
+            <a asp-page="./Index">Back to full List</a>
+        </p>
+    </div>
+</form>
+
 <form method="get">
     <div class="form-group">
         <label asp-for="AuthorID">Author</label>
@@ -20,7 +31,6 @@
             <option value="">All Authors</option>
         </select>
     </div>
-
     <p>
         <input type="submit" value="Filter" />
         <a asp-page="./Index">Reset</a>
@@ -30,8 +40,14 @@
 <table class="table">
     <thead>
         <tr>
-            <th>Book Title</th>
-            <th>Author</th>
+            <th>
+                <a asp-page="./Index" asp-route-sortOrder="@Model.TitleSort"
+                   asp-route-searchString="@Model.CurrentFilter">Book Title</a>
+            </th>
+            <th>
+                <a asp-page="./Index" asp-route-sortOrder="@Model.AuthorSort"
+                   asp-route-searchString="@Model.CurrentFilter">Author</a>
+            </th>
             <th>Price</th>
             <th>Publishing Date</th>
             <th>Publisher</th>
@@ -48,21 +64,11 @@
                 selectedRow = "table-success";
             }
             <tr class="@selectedRow">
-                <td>
-                    @Html.DisplayFor(modelItem => item.Title)
-                </td>
-                <td>
-                    @item.Author?.FirstName @item.Author?.LastName
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Price)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.PublishingDate)
-                </td>
-                <td>
-                    @item.Publisher?.PublisherName
-                </td>
+                <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                <td>@item.Author?.FullName</td>
+                <td>@Html.DisplayFor(modelItem => item.Price)</td>
+                <td>@Html.DisplayFor(modelItem => item.PublishingDate)</td>
+                <td>@item.Publisher?.PublisherName</td>
                 <td>
                     @if (item.BookCategories != null)
                     {

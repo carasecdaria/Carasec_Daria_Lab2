@@ -1,26 +1,42 @@
-
-using Carasec_Daria_Lab2.Data;
-using Carasec_Daria_Lab2.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Carasec_Daria_Lab2.Models;
+using Carasec_Daria_Lab2.ViewModels;
 
-namespace Carasec_Daria_Lab2.Pages.PublisherPages;
-
-public class IndexModel : PageModel
+namespace Carasec_Daria_Lab2.Pages.PublisherPages
 {
-    private readonly Carasec_Daria_Lab2Context _context;
-
-    public IndexModel(Carasec_Daria_Lab2Context context)
+    public class IndexModel : PageModel
     {
-        _context = context;
-    }
+        private readonly Carasec_Daria_Lab2.Data.Carasec_Daria_Lab2Context _context;
 
-    public IList<Publisher> Publisher { get; set; } = new List<Publisher>();
+        public IndexModel(Carasec_Daria_Lab2.Data.Carasec_Daria_Lab2Context context)
+        {
+            _context = context;
+        }
 
-    public async Task OnGetAsync()
-    {
-        Publisher = await _context.Publisher
-            .Include(p => p.Books)
-            .ToListAsync();
+        public IList<Publisher> Publisher { get; set; } = default!;
+        public PublisherIndexData PublisherData { get; set; } = default!;
+        public int PublisherID { get; set; }
+        public int BookID { get; set; }
+
+        public async Task OnGetAsync(int? id, int? bookID)
+        {
+            PublisherData = new PublisherIndexData();
+            PublisherData.Publishers = await _context.Publisher
+                .Include(i => i.Books)
+                    .ThenInclude(c => c.Author)
+                .OrderBy(i => i.PublisherName)
+                .ToListAsync();
+
+            Publisher = PublisherData.Publishers.ToList();
+
+            if (id != null)
+            {
+                PublisherID = id.Value;
+                Publisher publisher = PublisherData.Publishers
+                    .Where(i => i.ID == id.Value).Single();
+                PublisherData.Books = publisher.Books;
+            }
+        }
     }
 }
